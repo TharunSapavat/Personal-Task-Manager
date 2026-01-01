@@ -15,6 +15,7 @@ app.use(cors({
     origin: [
         'http://localhost:5173',
         'https://personal-task-manager-hwrhplrcn-tharunsapavats-projects.vercel.app',
+        'https://personal-task-manager-navy.vercel.app',
         process.env.FRONTEND_URL
     ].filter(Boolean),
     credentials:true,
