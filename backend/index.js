@@ -9,6 +9,8 @@ const cookieParser=require('cookie-parser');
 const app=express();
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
+const dotenv=require('dotenv');
+dotenv.config();
 app.use(cors({
     origin: [
         'http://localhost:5173',
@@ -19,9 +21,9 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
+app.options('*', cors());
 app.use(cookieParser());
-const dotenv=require('dotenv');
-dotenv.config();
+
 
 const PORT=process.env.PORT||4000;
 const DB_URL=process.env.DB_URL;
