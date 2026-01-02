@@ -82,6 +82,6 @@ const startCustomReminderScheduler = () => {
 
   console.log('🚀 Custom reminder scheduler started (runs every minute)');
 };
-};
+ 
 
 module.exports = { startCustomReminderScheduler };
