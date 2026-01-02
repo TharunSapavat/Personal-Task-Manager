@@ -8,21 +8,38 @@ const startCustomReminderScheduler = () => {
   cron.schedule('* * * * *', async () => {
     try {
       const now = new Date();
-      const oneMinuteAgo = new Date(now.getTime() - 60000);
+      const fiveMinutesAgo = new Date(now.getTime() - 5 * 60000);
       
-      // Find tasks with reminders due in the last minute that haven't been sent
+      console.log(`🔔 [${now.toISOString()}] Checking for custom reminders...`);
+      
+      // Find ALL tasks with reminders to debug
+      const allTasksWithReminders = await Task.find({
+        reminderEnabled: true,
+        status: { $ne: 'completed' }
+      }).select('title reminderTime reminderSent userId');
+      
+      console.log(`📋 Total tasks with reminders enabled: ${allTasksWithReminders.length}`);
+      if (allTasksWithReminders.length > 0) {
+        allTasksWithReminders.forEach(t => {
+          console.log(`  - "${t.title}": reminderTime=${t.reminderTime}, sent=${t.reminderSent}`);
+        });
+      }
+      
+      // Find tasks with reminders due in the last 5 minutes that haven't been sent
       const tasksWithReminders = await Task.find({
         reminderEnabled: true,
         reminderSent: false,
         status: { $ne: 'completed' },
         reminderTime: {
-          $gte: oneMinuteAgo,
+          $gte: fiveMinutesAgo,
           $lte: now
         }
       }).populate('userId', 'email name');
 
+      console.log(`✉️  Tasks due for reminder: ${tasksWithReminders.length}`);
+
       if (tasksWithReminders.length > 0) {
-        console.log(`Found ${tasksWithReminders.length} custom reminders to send`);
+        console.log(`📤 Sending reminders for ${tasksWithReminders.length} task(s)...`);
         
         // Group by user
         const tasksByUser = {};
@@ -42,6 +59,7 @@ const startCustomReminderScheduler = () => {
           const { user, tasks } = tasksByUser[userId];
           
           try {
+            console.log(`📧 Sending to ${user.email}...`);
             await sendReminderEmail(user.email, user.name, tasks);
             
             // Mark reminders as sent
@@ -51,18 +69,19 @@ const startCustomReminderScheduler = () => {
               { $set: { reminderSent: true } }
             );
             
-            console.log(`Sent custom reminder to ${user.email} for ${tasks.length} task(s)`);
+            console.log(`✅ Sent custom reminder to ${user.email} for ${tasks.length} task(s)`);
           } catch (err) {
-            console.error(`Failed to send custom reminder to ${user.email}:`, err);
+            console.error(`❌ Failed to send custom reminder to ${user.email}:`, err.message);
           }
         }
       }
     } catch (err) {
-      console.error('Custom reminder scheduler error:', err);
+      console.error('❌ Custom reminder scheduler error:', err);
     }
   });
 
-  console.log('Custom reminder scheduler started (runs every minute)');
+  console.log('🚀 Custom reminder scheduler started (runs every minute)');
+};
 };
 
 module.exports = { startCustomReminderScheduler };
