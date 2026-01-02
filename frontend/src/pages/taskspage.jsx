@@ -104,6 +104,13 @@ export default function TasksPage() {
   const handleCreateTask = useCallback(async (e) => {
     e.preventDefault();
     try {
+      // Convert local time to ISO string for proper timezone handling
+      let reminderTimeISO = null;
+      if (formData.reminderEnabled && formData.reminderTime) {
+        const localDateTime = new Date(formData.reminderTime);
+        reminderTimeISO = localDateTime.toISOString();
+      }
+
       const taskData = {
         title: formData.title,
         description: formData.description,
@@ -111,7 +118,7 @@ export default function TasksPage() {
         dueDate: formData.dueDate,
         tags: formData.tags ? formData.tags.split(',').map(t => t.trim()) : [],
         reminderEnabled: formData.reminderEnabled,
-        reminderTime: formData.reminderEnabled && formData.reminderTime ? formData.reminderTime : null
+        reminderTime: reminderTimeISO
       };
 
       if (editingTask) {
