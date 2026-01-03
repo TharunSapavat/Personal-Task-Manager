@@ -1,49 +1,13 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-// Create email transporter
-const createTransporter = () => {
-  // Use SendGrid if configured, otherwise Gmail
-  if (process.env.EMAIL_SERVICE === 'sendgrid') {
-    return nodemailer.createTransport({
-      host: 'smtp.sendgrid.net',
-      port: 587,
-      secure: false,
-      auth: {
-        user: 'apikey',
-        pass: process.env.EMAIL_PASSWORD // SendGrid API key
-      }
-    });
-  }
-  
-  // Gmail configuration
-  return nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD
-    },
-    tls: {
-      rejectUnauthorized: false
-    },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 10000
-  });
-};
+// Initialize Resend with API key
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Send task reminder email
 const sendTaskReminder = async (userEmail, userName, pendingTasks) => {
   try {
-    const transporter = createTransporter();
-
-    const taskList = pendingTasks
-      .map((task, index) => `${index + 1}. ${task.title} (${task.priority} priority)`)
-      .join('\n');
-
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
+    const { data, error } = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'TaskStreak <onboarding@resend.dev>',
       to: userEmail,
       subject: '🔔 TaskStreak Daily Reminder - Pending Tasks',
       html: `
@@ -95,11 +59,15 @@ const sendTaskReminder = async (userEmail, userName, pendingTasks) => {
         </body>
         </html>
       `
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
-    console.log(`Reminder email sent to ${userEmail}`);
-    return { success: true };
+    if (error) {
+      console.error('Resend error:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log(`Reminder email sent to ${userEmail}. ID: ${data.id}`);
+    return { success: true, id: data.id };
   } catch (error) {
     console.error('Error sending email:', error);
     return { success: false, error: error.message };
