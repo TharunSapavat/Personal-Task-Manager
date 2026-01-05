@@ -9,6 +9,7 @@ import {
   User,
   Menu,
   X,
+  Trophy,
 } from 'lucide-react';
 
 function Sidebar({ activeTab, user }) {
@@ -25,6 +26,7 @@ function Sidebar({ activeTab, user }) {
     { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
     { id: 'tasks', icon: ListTodo, label: 'Tasks', path: '/tasks' },
     { id: 'streaks', icon: Flame, label: 'Streaks', path: '/streaks' },
+    { id: 'achievements', icon: Trophy, label: 'Achievements', path: '/achievements' },
     { id: 'settings', icon: Settings, label: 'Settings', path: '/settings' }
   ];
 
@@ -60,7 +62,7 @@ function Sidebar({ activeTab, user }) {
       `}>
       <div className="mb-8">
         <div className="flex items-center gap-2">
-          <Flame className="text-indigo-600" size={32} />
+           
           <h1 className="text-xl font-bold text-gray-800">TaskStreak</h1>
         </div>
       </div>

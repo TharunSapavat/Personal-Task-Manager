@@ -7,7 +7,8 @@ const {
   createTask,
   updateTask,
   deleteTask,
-  getTaskStats
+  getTaskStats,
+  deleteAllTasks
 } = require('../controllers/taskController');
 
 // All routes require authentication
@@ -19,5 +20,6 @@ router.get('/stats', getTaskStats);
 router.post('/', createTask);
 router.put('/:taskId', updateTask);
 router.delete('/:taskId', deleteTask);
+router.delete('/', deleteAllTasks);
 
 module.exports = router;

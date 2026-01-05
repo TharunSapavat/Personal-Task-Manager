@@ -55,6 +55,18 @@ const login=async(req,res)=>{
         }
         const token=jwt.sign({userId:user._id},process.env.JWT_KEY,{expiresIn:'7d'});
 
+        // Check if this is first login (award Fresh Start achievement)
+        if (!user.achievements || user.achievements.length === 0) {
+            user.achievements = [{
+                badgeId: 'fresh_start',
+                unlockedAt: new Date(),
+                notified: false
+            }];
+            user.achievementPoints = 5;
+            user.profileLevel = 'bronze';
+            await user.save();
+        }
+
         res.status(200).json({
             success: true,
             message: 'Login successful',

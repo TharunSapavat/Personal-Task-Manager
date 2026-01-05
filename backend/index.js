@@ -32,6 +32,8 @@ const JWTKEY=process.env.JWT_KEY;
 const authRoutes=require('./routes/auth');
 const taskRoutes=require('./routes/taskRoutes');
 const streakRoutes=require('./routes/streakRoutes');
+const quoteRoutes=require('./routes/quoteRoutes');
+const achievementRoutes=require('./routes/achievementRoutes');
 const { startReminderScheduler } = require('./services/reminderScheduler');
 const { startCustomReminderScheduler } = require('./services/customReminderScheduler');
 
@@ -62,3 +64,5 @@ app.get('/',(req,res)=>{
 app.use('/api/auth',authRoutes);
 app.use('/api/tasks',taskRoutes);
 app.use('/api/streaks',streakRoutes);
+app.use('/api/quotes',quoteRoutes);
+app.use('/api/achievements',achievementRoutes);

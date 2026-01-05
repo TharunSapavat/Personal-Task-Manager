@@ -10,7 +10,7 @@ import {
   EyeOff,
   AlertCircle,
 } from 'lucide-react';
-import Sidebar from '../components/Sidebar';
+import Navbar from '../components/Navbar';
 import { authAPI } from '../services/api';
 
 export default function SettingsPage() {
@@ -96,25 +96,22 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="h-screen flex bg-gray-50 w-full">
-      <Sidebar activeTab="settings" user={user} />
+    <div className="min-h-screen bg-gray-50">
+      <Navbar user={user} />
 
-      <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-4">
-          <div className="ml-12 lg:ml-0">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Settings</h2>
-            <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">Manage your preferences and account</p>
-          </div>
-        </header>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">Settings</h2>
+          <p className="text-sm text-gray-600 mt-1">Manage your preferences and account</p>
+        </div>
 
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          <div className="max-w-4xl space-y-6">
-            {/* Notifications Section */}
-            <div className="bg-white rounded-xl p-4 sm:p-6 border border-gray-200">
-              <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-                <Bell className="text-indigo-600" size={20} />
-                <h3 className="text-base sm:text-lg font-semibold text-gray-800">Notifications</h3>
-              </div>
+        <div className="max-w-4xl space-y-6">
+          {/* Notifications Section */}
+          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+            <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+              <Bell className="text-blue-500" size={20} />
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800">Notifications</h3>
+            </div>
               
               {/* Notification Status */}
               <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg">
@@ -146,7 +143,7 @@ export default function SettingsPage() {
                       onChange={(e) => setNotificationEnabled(e.target.checked)}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
                   </label>
                 </div>
 
@@ -158,7 +155,7 @@ export default function SettingsPage() {
                       <p className="text-sm text-gray-500">Daily at 3:00 PM and 8:00 PM</p>
                     </div>
                   </div>
-                  <span className="text-sm font-medium text-indigo-600">2 times daily</span>
+                  <span className="text-sm font-medium text-blue-500">2 times daily</span>
                 </div>
 
                 <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -167,13 +164,13 @@ export default function SettingsPage() {
                     This helps you stay on track throughout the day and maintain your streak! 🔥
                   </p>
                 </div>
+                </div>
               </div>
-            </div>
-
+  
             {/* Security & Privacy Section */}
             <div className="bg-white rounded-xl p-6 border border-gray-200">
               <div className="flex items-center gap-3 mb-6">
-                <Lock className="text-indigo-600" size={24} />
+                <Lock className="text-blue-500" size={24} />
                 <h3 className="text-lg font-semibold text-gray-800">Security & Privacy</h3>
               </div>
 
@@ -210,7 +207,7 @@ export default function SettingsPage() {
                       autoComplete="current-password"
                       required
                       disabled={changingPassword}
-                      className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none disabled:bg-gray-100"
+                      className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-gray-100"
                     />
                     <button
                       type="button"
@@ -238,7 +235,7 @@ export default function SettingsPage() {
                       autoComplete="new-password"
                       required
                       disabled={changingPassword}
-                      className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none disabled:bg-gray-100"
+                      className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-gray-100"
                     />
                     <button
                       type="button"
@@ -266,7 +263,7 @@ export default function SettingsPage() {
                       autoComplete="new-password"
                       required
                       disabled={changingPassword}
-                      className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none disabled:bg-gray-100"
+                      className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-gray-100"
                     />
                     <button
                       type="button"
@@ -282,15 +279,14 @@ export default function SettingsPage() {
                 <button
                   type="submit"
                   disabled={changingPassword}
-                  className="w-full bg-indigo-600 text-white py-2.5 rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
+                  className="w-full bg-blue-500 text-white py-2.5 rounded-lg hover:bg-blue-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
                 >
                   {changingPassword ? 'Changing Password...' : 'Change Password'}
                 </button>
               </form>
-            </div>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

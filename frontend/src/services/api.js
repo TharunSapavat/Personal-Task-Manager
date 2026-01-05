@@ -31,11 +31,25 @@ export const taskAPI = {
   createTask: (taskData) => api.post('/tasks', taskData),
   updateTask: (taskId, updates) => api.put(`/tasks/${taskId}`, updates),
   deleteTask: (taskId) => api.delete(`/tasks/${taskId}`),
+  deleteAllTasks: () => api.delete('/tasks'),
 };
 
 export const streakAPI = {
   getStreakData: () => api.get('/streaks'),
   getStreakStats: () => api.get('/streaks/stats'),
+};
+
+export const quoteAPI = {
+  getDailyQuote: () => api.get('/quotes/daily'),
+  getAllQuotes: () => api.get('/quotes/all'),
+};
+
+export const achievementAPI = {
+  checkAchievements: () => api.post('/achievements/check'),
+  getAllAchievements: () => api.get('/achievements'),
+  getUnnotified: () => api.get('/achievements/unnotified'),
+  markNotified: (achievementIds) => api.post('/achievements/mark-notified', { achievementIds }),
+  getProfileStats: () => api.get('/achievements/profile-stats'),
 };
 
 export default api;

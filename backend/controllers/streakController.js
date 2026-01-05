@@ -1,6 +1,30 @@
 const User = require('../models/UserModel');
 const Task = require('../models/TaskModel');
 
+// Fix completed tasks without completedAt timestamp
+async function fixCompletedTasksTimestamps(userId) {
+  try {
+    // Find all completed tasks without completedAt
+    const tasksToFix = await Task.find({
+      userId,
+      status: 'completed',
+      completedAt: { $exists: false }
+    });
+
+    if (tasksToFix.length > 0) {
+      console.log(`Fixing ${tasksToFix.length} completed tasks without completedAt timestamp`);
+      
+      // Update each task to set completedAt to updatedAt
+      for (const task of tasksToFix) {
+        task.completedAt = task.updatedAt || task.createdAt;
+        await task.save();
+      }
+    }
+  } catch (err) {
+    console.error('Error fixing completed tasks timestamps:', err);
+  }
+}
+
 // Update user streak based on task completion
 exports.updateStreak = async (userId) => {
   try {
@@ -50,7 +74,7 @@ exports.getStreakData = async (req, res) => {
   try {
     const userId = req.user.userId;
     const { year } = req.query; // Get year from query parameter
-    const user = await User.findById(userId).select('currentStreak longestStreak lastActiveDate');
+    const user = await User.findById(userId).select('currentStreak longestStreak lastActiveDate activityHistory');
 
     if (!user) {
       return res.status(404).json({
@@ -58,6 +82,9 @@ exports.getStreakData = async (req, res) => {
         message: 'User not found'
       });
     }
+
+    // Fix any completed tasks without completedAt timestamp
+    await fixCompletedTasksTimestamps(userId);
 
     let startDate, endDate;
     
@@ -67,29 +94,57 @@ exports.getStreakData = async (req, res) => {
       startDate = new Date(Date.UTC(yearNum, 0, 1)); // Jan 1 of year (UTC)
       endDate = new Date(Date.UTC(yearNum, 11, 31, 23, 59, 59)); // Dec 31 of year (UTC)
     } else {
-      // Default: last 365 days from today
+      // Default: last 90 days from today (more reasonable than 365)
       endDate = new Date();
+      endDate.setHours(23, 59, 59, 999); // End of today
       startDate = new Date();
-      startDate.setDate(startDate.getDate() - 365);
+      startDate.setDate(startDate.getDate() - 89); // 90 days total including today
+      startDate.setHours(0, 0, 0, 0);
     }
 
+    // Use persistent activity history from user model (survives task deletion)
+    const activityMap = {};
+    
+    // First, get data from user's activity history
+    if (user.activityHistory && user.activityHistory.length > 0) {
+      console.log(`Found ${user.activityHistory.length} days in user's activity history`);
+      user.activityHistory.forEach(activity => {
+        activityMap[activity.date] = activity.tasksCompleted;
+      });
+    } else {
+      console.log('No activity history found in user document');
+    }
+    
+    // Also query current tasks as a fallback/supplement for migration
     const completedTasks = await Task.find({
       userId,
       status: 'completed',
-      completedAt: { $gte: startDate, $lte: endDate }
-    }).select('completedAt').lean(); // Use lean() for better performance
+      $or: [
+        { completedAt: { $gte: startDate, $lte: endDate } },
+        { completedAt: { $exists: false }, updatedAt: { $gte: startDate, $lte: endDate } }
+      ]
+    }).select('completedAt updatedAt createdAt').lean();
 
-    // Create activity map
-    const activityMap = {};
+    console.log(`Found ${completedTasks.length} completed tasks in database`);
+
+    // Merge task data with activity history (activity history takes precedence)
     completedTasks.forEach(task => {
-      const date = new Date(task.completedAt);
-      // Use local date to match the date range generation
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const dateKey = `${year}-${month}-${day}`;
-      activityMap[dateKey] = (activityMap[dateKey] || 0) + 1;
+      const completionDate = task.completedAt || task.updatedAt || task.createdAt;
+      if (completionDate) {
+        const date = new Date(completionDate);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const dateKey = `${year}-${month}-${day}`;
+        
+        // Only use task data if activity history doesn't have this date
+        if (!activityMap[dateKey]) {
+          activityMap[dateKey] = (activityMap[dateKey] || 0) + 1;
+        }
+      }
     });
+
+    console.log(`Activity map has ${Object.keys(activityMap).length} days with activity`);
 
     // Generate date range array
     const yearActivity = [];
@@ -134,29 +189,59 @@ exports.getStreakStats = async (req, res) => {
   try {
     const userId = req.user.userId;
     
-    // Get current week stats
+    const user = await User.findById(userId).select('currentStreak longestStreak points activityHistory');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Calculate this week's tasks from activity history
     const startOfWeek = new Date();
     startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
     startOfWeek.setHours(0, 0, 0, 0);
 
-    const tasksThisWeek = await Task.countDocuments({
-      userId,
-      status: 'completed',
-      completedAt: { $gte: startOfWeek }
-    });
-
-    // Get current month stats
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
-    const tasksThisMonth = await Task.countDocuments({
+    let tasksThisWeek = 0;
+    let tasksThisMonth = 0;
+
+    // Use activity history for accurate counts (survives task deletion)
+    if (user.activityHistory && user.activityHistory.length > 0) {
+      user.activityHistory.forEach(activity => {
+        const [year, month, day] = activity.date.split('-').map(Number);
+        const activityDate = new Date(year, month - 1, day);
+        
+        if (activityDate >= startOfWeek) {
+          tasksThisWeek += activity.tasksCompleted;
+        }
+        
+        if (activityDate >= startOfMonth) {
+          tasksThisMonth += activity.tasksCompleted;
+        }
+      });
+    }
+
+    // Also count current tasks as a fallback/supplement
+    const currentWeekTasks = await Task.countDocuments({
       userId,
       status: 'completed',
-      completedAt: { $gte: startOfMonth }
+      completedAt: { $gte: startOfWeek, $exists: true }
     });
 
-    const user = await User.findById(userId).select('currentStreak longestStreak points');
+    const currentMonthTasks = await Task.countDocuments({
+      userId,
+      status: 'completed',
+      completedAt: { $gte: startOfMonth, $exists: true }
+    });
+
+    // Use the maximum of activity history and current tasks (for migration)
+    tasksThisWeek = Math.max(tasksThisWeek, currentWeekTasks);
+    tasksThisMonth = Math.max(tasksThisMonth, currentMonthTasks);
 
     res.status(200).json({
       success: true,

@@ -65,6 +65,20 @@ const UserSchema = new mongoose.Schema(
       type: Date,
     },
 
+    // Activity History - persists even when tasks are deleted
+    activityHistory: [
+      {
+        date: {
+          type: String, // YYYY-MM-DD format
+          required: true,
+        },
+        tasksCompleted: {
+          type: Number,
+          default: 0,
+        },
+      },
+    ],
+
     // Preferences
     preferences: {
       dailyReminder: {
@@ -79,6 +93,42 @@ const UserSchema = new mongoose.Schema(
         type: String,
         default: "discipline",
       },
+    },
+
+    // Daily Quote Tracking
+    lastQuoteShownDate: {
+      type: String, // YYYY-MM-DD format
+    },
+    currentQuoteIndex: {
+      type: Number,
+      default: 0,
+    },
+
+    // Achievement System
+    achievements: [
+      {
+        badgeId: {
+          type: String,
+          required: true,
+        },
+        unlockedAt: {
+          type: Date,
+          required: true,
+        },
+        notified: {
+          type: Boolean,
+          default: false,
+        },
+      },
+    ],
+    achievementPoints: {
+      type: Number,
+      default: 0,
+    },
+    profileLevel: {
+      type: String,
+      enum: ["bronze", "silver", "gold", "diamond"],
+      default: "bronze",
     },
   },
   {

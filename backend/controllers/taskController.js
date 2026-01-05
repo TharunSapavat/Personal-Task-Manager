@@ -131,6 +131,43 @@ exports.updateTask = async (req, res) => {
 
       // Update streak
       await updateStreak(userId);
+
+      // Update activity history
+      const today = new Date();
+      const dateKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      
+      const user = await User.findById(userId);
+      
+      // Initialize activityHistory if it doesn't exist
+      if (!user.activityHistory) {
+        user.activityHistory = [];
+      }
+      
+      const existingActivity = user.activityHistory.find(a => a.date === dateKey);
+      
+      if (existingActivity) {
+        existingActivity.tasksCompleted += 1;
+        console.log(`Updated activity for ${dateKey}: ${existingActivity.tasksCompleted} tasks`);
+      } else {
+        user.activityHistory.push({ date: dateKey, tasksCompleted: 1 });
+        console.log(`Created new activity for ${dateKey}: 1 task`);
+      }
+      
+      await user.save();
+      console.log(`Activity history saved for user ${userId}`);
+      
+      // Check for new achievements after task completion
+      try {
+        const axios = require('axios');
+        // Trigger achievement check (async, don't wait for response)
+        axios.post(`http://localhost:${process.env.PORT || 4000}/api/achievements/check`, {}, {
+          headers: { 
+            Authorization: req.headers.authorization 
+          }
+        }).catch(err => console.log('Achievement check error:', err.message));
+      } catch (err) {
+        console.log('Failed to trigger achievement check:', err.message);
+      }
     }
     
     // If unmarking as completed, remove completedAt and deduct points
@@ -141,6 +178,27 @@ exports.updateTask = async (req, res) => {
       await User.findByIdAndUpdate(userId, {
         $inc: { points: -(task.points || 10) }
       });
+
+      // Decrement activity history
+      if (task.completedAt) {
+        const completedDate = new Date(task.completedAt);
+        const dateKey = `${completedDate.getFullYear()}-${String(completedDate.getMonth() + 1).padStart(2, '0')}-${String(completedDate.getDate()).padStart(2, '0')}`;
+        
+        const user = await User.findById(userId);
+        
+        // Initialize activityHistory if it doesn't exist
+        if (!user.activityHistory) {
+          user.activityHistory = [];
+        }
+        
+        const existingActivity = user.activityHistory.find(a => a.date === dateKey);
+        
+        if (existingActivity && existingActivity.tasksCompleted > 0) {
+          existingActivity.tasksCompleted -= 1;
+          await user.save();
+          console.log(`Decremented activity for ${dateKey}: ${existingActivity.tasksCompleted} tasks remaining`);
+        }
+      }
     }
 
     // Handle reminder updates
@@ -183,6 +241,10 @@ exports.deleteTask = async (req, res) => {
         message: 'Task not found'
       });
     }
+
+    // Note: We intentionally do NOT modify activityHistory here
+    // The activity count was already recorded when the task was completed
+    // This allows users to delete tasks without losing their streak history
 
     res.status(200).json({
       success: true,
@@ -253,6 +315,27 @@ exports.getTaskStats = async (req, res) => {
     res.status(500).json({ 
       success: false, 
       message: 'Failed to fetch task statistics' 
+    });
+  }
+};
+
+// Delete all tasks for a user
+exports.deleteAllTasks = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const result = await Task.deleteMany({ userId });
+
+    res.status(200).json({
+      success: true,
+      message: `Successfully deleted ${result.deletedCount} task(s)`,
+      deletedCount: result.deletedCount
+    });
+  } catch (err) {
+    console.error('Delete all tasks error:', err);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to delete all tasks' 
     });
   }
 };
