@@ -8,7 +8,8 @@ import {
   LogOut,
   Trophy,
   User,
-  ChevronDown
+  ChevronDown,
+  BarChart3
 } from 'lucide-react';
 
 function Navbar({ user }) {
@@ -26,6 +27,7 @@ function Navbar({ user }) {
     { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
     { id: 'tasks', icon: ListTodo, label: 'Tasks', path: '/tasks' },
     { id: 'streaks', icon: Flame, label: 'Streaks', path: '/streaks' },
+    { id: 'analytics', icon: BarChart3, label: 'Analytics', path: '/analytics' },
     { id: 'achievements', icon: Trophy, label: 'Achievements', path: '/achievements' },
     { id: 'settings', icon: Settings, label: 'Settings', path: '/settings' }
   ];

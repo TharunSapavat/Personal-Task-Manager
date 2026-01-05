@@ -26,6 +26,7 @@ export const authAPI = {
 
 export const taskAPI = {
   getTasks: (params) => api.get('/tasks', { params }),
+  getAllTasks: () => api.get('/tasks'),
   getTodayTasks: () => api.get('/tasks/today'),
   getTaskStats: () => api.get('/tasks/stats'),
   createTask: (taskData) => api.post('/tasks', taskData),

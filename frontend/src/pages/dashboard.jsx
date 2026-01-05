@@ -13,7 +13,8 @@ export default function Dashboard() {
     tasksCompleted: 0,
     currentStreak: 0,
     totalPoints: 0,
-    weeklyCompleted: 0
+    weeklyCompleted: 0,
+    longestStreak: 0
   });
   const [loading, setLoading] = useState(true);
   const [quote, setQuote] = useState(null);
@@ -105,11 +106,15 @@ export default function Dashboard() {
         const taskStats = statsResponse.data.stats;
         const streakStats = streakResponse.data.stats;
         
+        console.log('Task Stats:', taskStats);
+        console.log('Streak Stats:', streakStats);
+        
         setStats({
-          tasksCompleted: taskStats.completedTasks,
-          currentStreak: streakStats.currentStreak,
-          totalPoints: streakStats.totalPoints,
-          weeklyCompleted: streakStats.tasksThisWeek
+          tasksCompleted: taskStats.completedTasks || 0,
+          currentStreak: streakStats.currentStreak || 0,
+          totalPoints: streakStats.totalPoints || 0,
+          weeklyCompleted: streakStats.tasksThisWeek || 0,
+          longestStreak: streakStats.longestStreak || 0
         });
       }
     } catch (err) {

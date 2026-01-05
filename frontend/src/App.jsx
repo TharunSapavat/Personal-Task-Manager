@@ -10,6 +10,7 @@ import TasksPage from './pages/taskspage.jsx'
 import StreaksPage from './pages/streakspage.jsx'
 import SettingsPage from './pages/settingspage.jsx'
 import AchievementsPage from './pages/achievementspage.jsx'
+import AnalyticsPage from './pages/analyticspage.jsx'
 
 function App() {
 
@@ -32,6 +33,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/tasks" element={<TasksPage />} />
         <Route path="/streaks" element={<StreaksPage />} />
+        <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/achievements" element={<AchievementsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Routes>
