@@ -1,4 +1,5 @@
-# Personal Task Manager ✅
+# Personal Task Manager 
+
 
 A comprehensive task management system built with Node.js, Express, MongoDB, and React that helps users build productive habits through streak tracking, achievements, and intelligent reminders.
 
